@@ -1,0 +1,27 @@
+\documentclass{khsu}
+\includeonly{
+title, 
+introduction, 
+chapter1, 
+chapter2, 
+chapter3, 
+conclusions, 
+bibliography,
+additionals
+}
+
+\addbibresource{bibliography.bib}
+
+\begin{document}
+
+\include{title}
+\tableofcontents
+\include{introduction}
+\include{chapter1}
+\include{chapter2}
+\include{chapter3}
+
+\include{conclusions} %Висновки
+\include{bibliography} %Перелік  джерел посилання
+\include{additionals} %Додатки
+\end{document}
