@@ -41,6 +41,7 @@
 \usepackage{xcolor}
 % Поддержка графики
 %\usepackage[pdftex]{graphicx}
+\usepackage{graphicx}
 
 
 
