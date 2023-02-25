@@ -114,3 +114,69 @@ pub(crate) fn lexer(inp: &str) -> Result<Vec<Token>,AppError>{
 }
 
 \end{verbatim}
+
+\newpage
+\section{Додаток Б}
+
+\begin{verbatim}
+
+CREATE TABLE Users (
+	id int(10) primary key auto increment,
+	name varchar(50),
+	email varchar(50),
+	login varchar(50),
+	password_hash blob
+)
+
+
+CREATE TABLE SavedPrograms (
+	id int(10) primary key auto increment,
+	user_id int(10)
+	source blob,
+	FOREIGN KEY (user_id) REFERENCES Users(id)
+)
+
+
+CREATE TABLE SavedData (
+	program_id int(10),
+	name varchar(50),
+	data blob,
+	CONSTRAINT SavedDataPK PRIMARY KEY (program_id,name),
+	FOREIGN KEY (program_id) REFERENCES SavedPrograms(id)
+)
+
+\end{verbatim}
+
+\newpage
+\section{Додаток В}
+
+Запит на хєш пароля користувача:
+
+\begin{verbatim}
+SELECT password_hash FROM Users WHERE login = \%login\%; 
+\end{verbatim}
+
+Запит на id збережених программ користувача:
+
+\begin{verbatim}
+SELECT id FROM SavedPrograms WHERE user_id = \%id\%; 
+\end{verbatim}
+
+Запит на збережену програму:
+
+\begin{verbatim}
+SELECT * FROM SavedPrograms WHERE id = \%id\%; 
+\end{verbatim}
+
+Запит на збережені програми та їх дані:
+
+\begin{verbatim}
+SELECT 
+SavedPrograms.id as `id`,  
+SavedPrograms.source as `source`,
+JSON_ARRAYAGG(JSON_OBJECT(`name`, SavedData.name,`data`, SavedData.data))
+FROM SavedPrograms JOIN SavedData ON SavedData.program_id = SavedPrograms.id
+WHERE SavedPrograms.user_id = \%user_id\%
+GROUP BY SavedProgram.id;
+\end{verbatim}
+
