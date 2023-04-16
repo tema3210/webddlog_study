@@ -138,6 +138,7 @@ impl Token {
 
                     let mut iter = window.iter().enumerate();
                     'before_dot: while let Some((offset,ch)) = iter.next() {
+                        // log::debug!("before dot: {}, {:?}, {}",before_dot,dot_position,after_dot);
                         match ch {
                             '0'..='9' => before_dot = before_dot * 10 + ch.to_digit(10).unwrap() as i64,
                             '.' => {
@@ -148,8 +149,10 @@ impl Token {
                         }
                     };
                     while let Some((offset,ch)) = iter.next() {
+                        let factor = (offset - dot_position.unwrap()) as f64;
+                        // log::debug!("after dot: {}, {:?}, {}, {}",before_dot,dot_position,after_dot, factor);
                         match ch {
-                            '0'..='9' => after_dot = after_dot + (f64::powf(-10.0, (offset - dot_position.unwrap()) as f64)) * (ch.to_digit(10).unwrap() as f64),
+                            '0'..='9' => after_dot = after_dot + (f64::powf(0.1, factor)) * (ch.to_digit(10).unwrap() as f64),
                             _ => return (Some(Literal::Float(before_dot as f64 + after_dot)), offset)
                         }
                     };

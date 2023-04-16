@@ -6,8 +6,7 @@ use crate::{Store, components::home::Home, lang::lexer::lex};
 #[function_component(App)]
 pub fn app() -> Html {
     let (state, dispatch) = use_store::<Store>();
-    let lexed: Vec<_> = lex("asdadsa + 21 + as* true").collect();
-    let lexed2: Vec<_> = lex("*asdadsa* + 21 + as* - true").collect();
+    let lexed: Vec<_> = lex("asdadsa + 11.21 + as* true").collect();
     let onclick_add = dispatch.reduce_mut_callback(Store::inc);
     let onclick_minus = dispatch.reduce_mut_callback(Store::dec);
 
@@ -20,8 +19,6 @@ pub fn app() -> Html {
                 <button class={"col btn"} onclick={|ev| log::info!("{:?}",ev)}>{"oooo"}</button>
             </div>
             {format!("{:?}", lexed)}
-            <br />
-            {format!("{:?}", lexed2)}
             <Home />
         </div>
     }
