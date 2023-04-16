@@ -95,10 +95,11 @@ impl Token {
 
     pub fn from_input(input: &str) -> rc::Gen<Token,(), impl Future<Output = ()> + '_> {
         let parse_word = |window: &[char]| -> (ArcStr,usize) {
+            // log::debug!("parsing next word from {:?}", &window);
             let mut s = String::new();
             for (i,ch) in window.iter().enumerate() {
                 if !(ch.is_alphabetic()) {
-                    return (s.into(),i+1)
+                    return (s.into(),i)
                 };
                 s.push(*ch)
             };
@@ -108,7 +109,6 @@ impl Token {
 
         let lit_predicate =|ch: char| {
             match ch {
-                '-' => true,
                 '0'..='9' => true,
                 '\"' => true,
                 't' | 'f' => true,
@@ -116,7 +116,8 @@ impl Token {
             }
         };
 
-        let parse_lit = |window: &[char]| -> (Literal,usize) {
+        let parse_lit = |window: &[char]| -> (Option<Literal>,usize) {
+            // log::debug!("parsing next literal from {:?}", &window);
             match window[0] {
                 '"' => {
                     //todo: support escape char
@@ -124,7 +125,7 @@ impl Token {
                     for i in &window[1..] {
                         if *i == '"' {
                             let length =  s.len()+1;
-                            return (Literal::String(s.into()),length)
+                            return (Some(Literal::String(s.into())),length)
                         };
                         s.push(*i);
                     };
@@ -143,28 +144,28 @@ impl Token {
                                 dot_position = Some(offset);
                                 break 'before_dot
                             },
-                            _ => return (Literal::Integer(before_dot), offset)
+                            _ => return (Some(Literal::Integer(before_dot)), offset)
                         }
                     };
                     while let Some((offset,ch)) = iter.next() {
                         match ch {
                             '0'..='9' => after_dot = after_dot + (f64::powf(-10.0, (offset - dot_position.unwrap()) as f64)) * (ch.to_digit(10).unwrap() as f64),
-                            _ => return (Literal::Float(before_dot as f64 + after_dot), offset)
+                            _ => return (Some(Literal::Float(before_dot as f64 + after_dot)), offset)
                         }
                     };
                     match dot_position {
                         Some(_) => {
-                            (Literal::Float(before_dot as f64 + after_dot), window.len())
+                            (Some(Literal::Float(before_dot as f64 + after_dot)), window.len())
                         },
                         None => {
-                            (Literal::Integer(before_dot),window.len())
+                            (Some(Literal::Integer(before_dot)),window.len())
                         }
                     }
                 },
                 _ => {
                     match &window[..] {
-                        ['t','r','u','e', ..] => return (Literal::Boolean(true),4),
-                        ['f','a','l','s','e', ..] => return (Literal::Boolean(false),5),
+                        ['t','r','u','e', ..] => return (Some(Literal::Boolean(true)),4),
+                        ['f','a','l','s','e', ..] => return (Some(Literal::Boolean(false)),5),
                         _ => unreachable!()
                     }
                 }
@@ -179,9 +180,10 @@ impl Token {
                 let window = &chars[offset..];
                 match window {
                     [w,..] if lit_predicate(*w) => {
-                        let (lit,moved) = parse_lit(window);
-                        offset += moved;
-                        yield_!(Token::Literal(lit))
+                        if let (Some(lit),moved) = parse_lit(window) {
+                            offset += moved;
+                            yield_!(Token::Literal(lit))
+                        }
                     },
                     [w,..] if w.is_ascii_lowercase() && w.is_alphabetic()=> {
                         let (s,moved) = parse_word(window);
