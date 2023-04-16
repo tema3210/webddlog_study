@@ -182,6 +182,16 @@ impl Token {
             loop {
                 let window = &chars[offset..];
                 match window {
+                    ['-',dig,..] if ('0'..='9').contains(dig) => {
+                        if let (Some(lit),moved) = parse_lit(&window[1..]) {
+                            offset += moved + 1;
+                            match lit {
+                                Literal::Integer(i) => yield_!(Token::Literal(Literal::Integer(-i))),
+                                Literal::Float(f) => yield_!(Token::Literal(Literal::Float(-f))),
+                                _ => panic!("oh no"),
+                            }
+                        }
+                    }
                     [w,..] if lit_predicate(*w) => {
                         if let (Some(lit),moved) = parse_lit(window) {
                             offset += moved;
