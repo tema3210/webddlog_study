@@ -2,15 +2,15 @@ use yew::prelude::*;
 use yewdux::prelude::*;
 use stylist::yew::styled_component;
 
-use crate::{store::State, lang::lexer::lex};
+use crate::{store::State};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
 
 }
 
-#[styled_component(Home)]
-pub fn home(props: &Props) -> Html {
+#[styled_component(Header)]
+pub fn header(props: &Props) -> Html {
     let (state, _) = use_store::<State>();
     
     html! {

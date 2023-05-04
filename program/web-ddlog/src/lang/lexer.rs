@@ -46,13 +46,13 @@ pub enum Literal {
 /// A fragment of text, formated correctly
 #[derive(Debug)]
 pub enum Token {
-    UcIdent(ArcStr), // +
-    LcIdent(ArcStr), // +
-    Special(Special), //+
+    UcIdent(ArcStr),
+    LcIdent(ArcStr),
+    Special(Special),
     Literal(Literal),
-    OperatorSign(OperatorSign), // +
-    BraceRight(BraceKind), // +
-    BraceLeft(BraceKind), // +
+    OperatorSign(OperatorSign),
+    BraceRight(BraceKind),
+    BraceLeft(BraceKind),
 }
 
 impl Token {
@@ -85,93 +85,88 @@ impl Token {
     }
 }
 
-impl Token {
-    pub fn is_ident(&self) -> bool {
-        match self {
-            Token::UcIdent(_) | Token::LcIdent(_) => true,
-            _ => false
+
+fn parse_lit(window: &[char]) -> (Option<Literal>,usize) {
+    log::debug!("get next literal from {:?}", &window);
+    match window[0] {
+        '"' => {
+            //todo: support escape char
+            let mut s = String::new();
+            for i in &window[1..] {
+                if *i == '"' {
+                    let length =  s.len()+1;
+                    return (Some(Literal::String(s.into())),length)
+                };
+                s.push(*i);
+            };
+            panic!("Unclosed Literal");
+        },
+        '0'..='9' => {
+            let mut before_dot = 0i64;
+            let mut dot_position = None;
+            let mut after_dot = 0f64;
+
+            let mut iter = window.iter().enumerate();
+            'before_dot: while let Some((offset,ch)) = iter.next() {
+                // log::debug!("before dot: {}, {:?}, {}",before_dot,dot_position,after_dot);
+                match ch {
+                    '0'..='9' => before_dot = before_dot * 10 + ch.to_digit(10).unwrap() as i64,
+                    '.' => {
+                        dot_position = Some(offset);
+                        break 'before_dot
+                    },
+                    _ => return (Some(Literal::Integer(before_dot)), offset)
+                }
+            };
+            while let Some((offset,ch)) = iter.next() {
+                let factor = (offset - dot_position.unwrap()) as f64;
+                // log::debug!("after dot: {}, {:?}, {}, {}",before_dot,dot_position,after_dot, factor);
+                match ch {
+                    '0'..='9' => after_dot = after_dot + (f64::powf(0.1, factor)) * (ch.to_digit(10).unwrap() as f64),
+                    _ => return (Some(Literal::Float(before_dot as f64 + after_dot)), offset)
+                }
+            };
+            match dot_position {
+                Some(_) => {
+                    (Some(Literal::Float(before_dot as f64 + after_dot)), window.len())
+                },
+                None => {
+                    (Some(Literal::Integer(before_dot)),window.len())
+                }
+            }
+        },
+        _ => {
+            match &window[..] {
+                ['t','r','u','e', ..] => return (Some(Literal::Boolean(true)),4),
+                ['f','a','l','s','e', ..] => return (Some(Literal::Boolean(false)),5),
+                _ => unreachable!()
+            }
         }
     }
+}
 
-    pub fn from_input(input: &str) -> rc::Gen<Token,(), impl Future<Output = ()> + '_> {
-        let parse_word = |window: &[char]| -> (ArcStr,usize) {
-            // log::debug!("parsing next word from {:?}", &window);
-            let mut s = String::new();
-            for (i,ch) in window.iter().enumerate() {
-                if !(ch.is_alphabetic()) {
-                    return (s.into(),i)
-                };
-                s.push(*ch)
-            };
-            let len = s.len();
-            (s.into(),len - 1)
+fn parse_word(window: &[char]) -> (ArcStr,usize) {
+    log::debug!("get next word from {:?}", window);
+    let mut s = String::new();
+    for (i,ch) in window.iter().enumerate() {
+        if !(ch.is_alphabetic() || *ch == '_') {
+            return (s.into(),i)
         };
+        s.push(*ch)
+    };
+    let len = s.len();
+    (s.into(),len)
+}
 
+impl Token {
+    pub fn from_input(input: &str) -> rc::Gen<Token,(), impl Future<Output = ()> + '_> {
+        
         let lit_predicate =|ch: char| {
             match ch {
                 '0'..='9' => true,
                 '\"' => true,
                 't' | 'f' => true,
                 _ => false
-            }
-        };
-
-        let parse_lit = |window: &[char]| -> (Option<Literal>,usize) {
-            // log::debug!("parsing next literal from {:?}", &window);
-            match window[0] {
-                '"' => {
-                    //todo: support escape char
-                    let mut s = String::new();
-                    for i in &window[1..] {
-                        if *i == '"' {
-                            let length =  s.len()+1;
-                            return (Some(Literal::String(s.into())),length)
-                        };
-                        s.push(*i);
-                    };
-                    panic!("Unclosed Literal");
-                },
-                '0'..='9' => {
-                    let mut before_dot = 0i64;
-                    let mut dot_position = None;
-                    let mut after_dot = 0f64;
-
-                    let mut iter = window.iter().enumerate();
-                    'before_dot: while let Some((offset,ch)) = iter.next() {
-                        // log::debug!("before dot: {}, {:?}, {}",before_dot,dot_position,after_dot);
-                        match ch {
-                            '0'..='9' => before_dot = before_dot * 10 + ch.to_digit(10).unwrap() as i64,
-                            '.' => {
-                                dot_position = Some(offset);
-                                break 'before_dot
-                            },
-                            _ => return (Some(Literal::Integer(before_dot)), offset)
-                        }
-                    };
-                    while let Some((offset,ch)) = iter.next() {
-                        let factor = (offset - dot_position.unwrap()) as f64;
-                        // log::debug!("after dot: {}, {:?}, {}, {}",before_dot,dot_position,after_dot, factor);
-                        match ch {
-                            '0'..='9' => after_dot = after_dot + (f64::powf(0.1, factor)) * (ch.to_digit(10).unwrap() as f64),
-                            _ => return (Some(Literal::Float(before_dot as f64 + after_dot)), offset)
-                        }
-                    };
-                    match dot_position {
-                        Some(_) => {
-                            (Some(Literal::Float(before_dot as f64 + after_dot)), window.len())
-                        },
-                        None => {
-                            (Some(Literal::Integer(before_dot)),window.len())
-                        }
-                    }
-                },
-                _ => {
-                    match &window[..] {
-                        ['t','r','u','e', ..] => return (Some(Literal::Boolean(true)),4),
-                        ['f','a','l','s','e', ..] => return (Some(Literal::Boolean(false)),5),
-                        _ => unreachable!()
-                    }
-                }
             }
         };
 
