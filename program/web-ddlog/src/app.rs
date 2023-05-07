@@ -3,36 +3,35 @@ use web_sys::HtmlInputElement;
 use yew::{prelude::*};
 use yewdux::prelude::*;
 
-use crate::{Store, lang::lexer::lex};
+use crate::{
+    components::header::Header, 
+    components::footer::Footer,
+    components::menu::Menu,
+    components::interaction::Interactions,
+    components::project_area::ProjectArea
+};
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let (state, dispatch) = use_store::<Store>();
-    let lexed: Vec<_> = lex(
-        &state.get_program()
-    ).collect();
-    let onclick_add = dispatch.reduce_mut_callback(Store::inc);
-    let onclick_minus = dispatch.reduce_mut_callback(Store::dec);
-
-    let onchange = Callback::from(move |ev: Event| {
-        ev.target()
-            .and_then(|t| t.dyn_into::<HtmlInputElement>().ok())
-            .map(
-                |input| dispatch.reduce_mut(
-                    |state| state.set_program(input.value())
-                )
-            );
-    });
-
     html! {
         <div class={"container"}>
             <div class={"row"}>
-                <button class={"col btn btn-primary"} onclick={onclick_add}>{"+1"}</button>
-                <button class={"col btn"} onclick={onclick_minus}>{"-1"}</button>
-                <button class={"col btn"} onclick={|ev| log::info!("{:?}",ev)}>{"oooo"}</button>
-                <input type={"text"} onchange={onchange} value={state.get_program()} />
+                <Header />
             </div>
-            {format!("{:?}", lexed)}
+            <div class={"row"}>
+                <div class={"col-3"}>
+                    <Menu />
+                </div>
+                <div class={"col-6"}>
+                    <ProjectArea />
+                </div>
+                <div class={"col-3"}>
+                    <Interactions />
+                </div>
+            </div>
+            <div class={"row"}>
+                <Footer />
+            </div>
         </div>
     }
 }
