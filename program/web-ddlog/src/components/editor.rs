@@ -9,8 +9,8 @@ pub struct Props {
 
 }
 
-#[styled_component(Header)]
-pub fn header(props: &Props) -> Html {
+#[styled_component(Editor)]
+pub fn editor(props: &Props) -> Html {
     let (state, _) = use_store::<State>();
     
     html! {

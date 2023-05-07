@@ -15,9 +15,13 @@ pub fn app() -> Html {
     let onclick_minus = dispatch.reduce_mut_callback(Store::dec);
 
     let onchange = Callback::from(move |ev: Event| {
-        if let Some(input) = ev.target().and_then(|t| t.dyn_into::<HtmlInputElement>().ok()) {
-            dispatch.reduce_mut(|state| state.set_program(input.value()))
-        }
+        ev.target()
+            .and_then(|t| t.dyn_into::<HtmlInputElement>().ok())
+            .map(
+                |input| dispatch.reduce_mut(
+                    |state| state.set_program(input.value())
+                )
+            );
     });
 
     html! {

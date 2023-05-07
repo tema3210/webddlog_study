@@ -9,8 +9,8 @@ pub struct Props {
 
 }
 
-#[styled_component(Header)]
-pub fn header(props: &Props) -> Html {
+#[styled_component(Menu)]
+pub fn menu(props: &Props) -> Html {
     let (state, _) = use_store::<State>();
     
     html! {

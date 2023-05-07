@@ -1,7 +1,7 @@
 use std::future::Future;
 
 use arcstr::ArcStr;
-use genawaiter::{rc,yield_, Generator};
+use genawaiter::{rc,yield_};
 
 #[derive(Debug)]
 pub enum BraceKind {

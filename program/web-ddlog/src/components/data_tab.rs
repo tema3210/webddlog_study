@@ -9,13 +9,13 @@ pub struct Props {
 
 }
 
-#[styled_component(Header)]
-pub fn header(props: &Props) -> Html {
+#[styled_component(DataTab)]
+pub fn data_tab(props: &Props) -> Html {
     let (state, _) = use_store::<State>();
     
     html! {
         <div class={"row"}>
-            <p class={css!("color: red;")}>{"header "} {state.get_count()} </p>
+            <p class={css!("color: red;")}>{"data tab "} {state.get_count()} </p>
         </div>
     }
 }
