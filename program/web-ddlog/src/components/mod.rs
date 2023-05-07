@@ -1,4 +1,3 @@
-pub mod home;
 pub mod header;
 pub mod footer;
 pub mod data_tab;

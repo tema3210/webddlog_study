@@ -3,7 +3,7 @@ use web_sys::HtmlInputElement;
 use yew::{prelude::*};
 use yewdux::prelude::*;
 
-use crate::{Store, components::home::Home, lang::lexer::lex};
+use crate::{Store, lang::lexer::lex};
 
 #[function_component(App)]
 pub fn app() -> Html {
@@ -33,7 +33,6 @@ pub fn app() -> Html {
                 <input type={"text"} onchange={onchange} value={state.get_program()} />
             </div>
             {format!("{:?}", lexed)}
-            <Home />
         </div>
     }
 }
