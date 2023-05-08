@@ -1,29 +1,34 @@
+use std::{collections::HashMap, rc::Rc};
+
 use yewdux::store::Store;
 
-#[derive(Default, Clone, PartialEq, Eq, Store)]
+#[derive(Default, Clone)]
+struct Program {
+    text: String
+}
+
+impl PartialEq for Program {
+    fn eq(&self, other: &Self) -> bool {
+        self.text == other.text
+    }
+}
+
+#[derive(Default, Clone, PartialEq, Store)]
 pub struct State {
-    count: i32,
-    program: String
+    current_module: String,
+    modules: HashMap<String,Program>
 }
 
 
 impl State {
-    pub fn inc(&mut self) {
-        self.count += 1
+    pub fn list_tabs(&self) -> Vec<String> {
+        self.modules.keys().cloned().collect()
+    }
+    pub fn set_current_tab(&mut self, tab: String) {
+        self.current_module = tab
     }
 
-    pub fn dec(&mut self) {
-        self.count -= 1
-    }
-    pub fn get_count(&self) -> i32 {
-        self.count
-    }
-
-    pub fn get_program(&self) -> String {
-        self.program.clone()
-    }
-
-    pub fn set_program(&mut self, program: String) {
-        self.program = program
+    pub fn get_current_tab(&self) -> String {
+        self.current_module.clone()
     }
 }

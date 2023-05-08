@@ -6,7 +6,7 @@ use crate::{store::State};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-
+    pub tab: String
 }
 
 #[styled_component(Editor)]
@@ -15,7 +15,7 @@ pub fn editor(props: &Props) -> Html {
     
     html! {
         <div class={"row"}>
-            <p class={css!("color: red;")}>{"header "} {state.get_count()} </p>
+            <p class={css!("color: red;")}>{"header "} </p>
         </div>
     }
 }

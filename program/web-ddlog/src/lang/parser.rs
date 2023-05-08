@@ -14,6 +14,7 @@ pub enum TypeSpec {
     Func(Box<TypeSpec>,Box<TypeSpec>)
 }
 
+
 pub enum TypeDef {
     Tuple {
         name: String,
@@ -29,7 +30,6 @@ pub enum TypeDef {
 
 pub struct Expression();
 
-
 pub enum AstNode {
     Many(Vec<AstNode>),
     TypeDef(TypeDef),
@@ -37,6 +37,12 @@ pub enum AstNode {
     Function{
         name: String,
         type_: TypeSpec
+    }
+}
+
+impl Default for AstNode {
+    fn default() -> Self {
+        AstNode::Many(vec![])
     }
 }
 

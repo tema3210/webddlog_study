@@ -6,7 +6,7 @@ use web_sys::HtmlInputElement;
 use yew::{prelude::*};
 
 
-use crate::{Store, lang::lexer::lex};
+use crate::{Store, lang::lexer::lex, components::editor::Editor};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -16,29 +16,28 @@ pub struct Props {
 #[styled_component(ProjectArea)]
 pub fn project_area(props: &Props) -> Html {
     let (state, dispatch) = use_store::<Store>();
-    let lexed: Vec<_> = lex(
-        &state.get_program()
-    ).collect();
-    let onclick_add = dispatch.reduce_mut_callback(Store::inc);
-    let onclick_minus = dispatch.reduce_mut_callback(Store::dec);
 
-    let onchange = Callback::from(move |ev: Event| {
-        ev.target()
-            .and_then(|t| t.dyn_into::<HtmlInputElement>().ok())
-            .map(
-                |input| dispatch.reduce_mut(
-                    |state| state.set_program(input.value())
-                )
-            );
+    let tabs = state.list_tabs().into_iter().map(|s| {
+        let cb = dispatch.reduce_mut_callback(move |state| state.set_current_tab(s.clone()));
+        html! {
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" onclick={&cb}>{"Active"}</a>
+            </li>
+        }
     });
+
+    let tab = state.get_current_tab();
+
     
     html! {
-        <div class={"row"}>
-            <button class={"col btn btn-primary"} onclick={onclick_add}>{"+1"}</button>
-            <button class={"col btn"} onclick={onclick_minus}>{"-1"}</button>
-            <button class={"col btn"} onclick={|ev| log::info!("{:?}",ev)}>{"oooo"}</button>
-            <input type={"text"} onchange={onchange} value={state.get_program()} />
-            {format!("{:?}", lexed)}    
+        <div>
+            <ul class="nav">
+                {for tabs}
+                <li class="nav-item" >
+                    <a class="nav-link active" >{"+"}</a>
+                </li>
+            </ul>
+            <Editor tab={tab}/>
         </div>
     }
 }

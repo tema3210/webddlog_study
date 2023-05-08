@@ -3,7 +3,7 @@ use std::future::Future;
 use arcstr::ArcStr;
 use genawaiter::{rc,yield_};
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum BraceKind {
     /// {}
     Brace,
@@ -14,7 +14,7 @@ pub enum BraceKind {
     // <>
     AngleBrace
 }
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum OperatorSign {
     And,
     Plus,
@@ -26,7 +26,7 @@ pub enum OperatorSign {
 }
 
 /// A special character encountered in text
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum Special {
     /// `=`
     EqSign,
@@ -35,7 +35,7 @@ pub enum Special {
     /// `;`
     SemiColon
 }
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum Literal {
     String(ArcStr),
     Integer(i64),
@@ -44,7 +44,7 @@ pub enum Literal {
 }
 
 /// A fragment of text, formated correctly
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum Token {
     UcIdent(ArcStr),
     LcIdent(ArcStr),

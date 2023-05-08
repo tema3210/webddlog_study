@@ -6,7 +6,7 @@ use crate::{store::State};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-
+    
 }
 
 #[styled_component(DataTab)]
@@ -15,7 +15,7 @@ pub fn data_tab(props: &Props) -> Html {
     
     html! {
         <div class={"row"}>
-            <p class={css!("color: red;")}>{"data tab "} {state.get_count()} </p>
+            <p class={css!("color: red;")}>{"data tab "} </p>
         </div>
     }
 }

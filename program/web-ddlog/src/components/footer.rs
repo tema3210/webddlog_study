@@ -15,7 +15,7 @@ pub fn footer(props: &Props) -> Html {
     
     html! {
         <div class={"row"}>
-            <p class={css!("color: red;")}>{"footer "} {state.get_count()} </p>
+            <p class={css!("color: red;")}>{"footer "} </p>
         </div>
     }
 }
