@@ -17,16 +17,19 @@ pub struct Props {
 pub fn project_area(props: &Props) -> Html {
     let (state, dispatch) = use_store::<Store>();
 
-    let tabs = state.list_tabs().into_iter().map(|s| {
-        let cb = dispatch.reduce_mut_callback(move |state| state.set_current_tab(s.clone()));
+    let tabs = state.list_modules().into_iter().map(|s| {
+        let s2 = s.clone();
+        let cb = dispatch.reduce_mut_callback(move |state| state.set_current_module(&s));
         html! {
             <li class="nav-item">
-                <a class="nav-link active" aria-current="page" onclick={&cb}>{"Active"}</a>
+                <a class="nav-link active" aria-current="page" onclick={&cb}>{s2}</a>
             </li>
         }
     });
 
-    let tab = state.get_current_tab();
+    let new_cb = dispatch.reduce_mut_callback(|state| {
+        state.add_empty_module("new")
+    });
 
     
     html! {
@@ -34,10 +37,10 @@ pub fn project_area(props: &Props) -> Html {
             <ul class="nav">
                 {for tabs}
                 <li class="nav-item" >
-                    <a class="nav-link active" >{"+"}</a>
+                    <a class="nav-link active" onclick={&new_cb}>{"+"}</a>
                 </li>
             </ul>
-            <Editor tab={tab}/>
+            if let Some(tab) = state.get_current_module() { <Editor name={tab} /> }
         </div>
     }
 }

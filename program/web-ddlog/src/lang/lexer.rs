@@ -187,12 +187,6 @@ impl Token {
                             }
                         }
                     }
-                    [w,..] if lit_predicate(*w) => {
-                        if let (Some(lit),moved) = parse_lit(window) {
-                            offset += moved;
-                            yield_!(Token::Literal(lit))
-                        }
-                    },
                     [w,..] if w.is_ascii_lowercase() && w.is_alphabetic()=> {
                         let (s,moved) = parse_word(window);
                         offset += moved;
@@ -202,6 +196,12 @@ impl Token {
                         let (s,moved) = parse_word(window);
                         offset += moved;
                         yield_!(Token::UcIdent(ArcStr::from(s)))
+                    },
+                    [w,..] if lit_predicate(*w) => {
+                        if let (Some(lit),moved) = parse_lit(window) {
+                            offset += moved;
+                            yield_!(Token::Literal(lit))
+                        }
                     },
                     [ch,..] if Self::from_single_char(*ch).is_some() => {
                         let tok = Self::from_single_char(*ch).unwrap();
