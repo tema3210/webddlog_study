@@ -4,6 +4,7 @@ mod store;
 mod components;
 mod types;
 mod lang;
+mod validation;
 
 type Store = store::State;
 

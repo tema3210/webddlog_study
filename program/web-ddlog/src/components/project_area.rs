@@ -28,15 +28,12 @@ pub fn project_area(props: &Props) -> Html {
     });
 
     let new_name = use_state(|| -> Option<String>{ None });
-    let new_name2 = new_name.clone();
-    let new_name3 = new_name.clone();
+    
     let new_name4 = new_name.clone();
-    let new_name5 = new_name.clone();
-
     let new_cb = dispatch.reduce_mut_callback(move |state| {
         if let Some(name) = &*new_name4 {
             state.add_empty_module(&name);
-            new_name5.set(None)
+            new_name4.set(None)
         }
     });
 
@@ -47,19 +44,31 @@ pub fn project_area(props: &Props) -> Html {
                 {for tabs}
                 <li class="nav-item" >
                     if new_name.is_none() {
-                        <a class="nav-link active" onclick={move |_| new_name3.set(Some(String::new()))}>{"+"}</a>
+                        <a class="nav-link active" onclick={
+                            let new_name = new_name.clone();
+                            move |_| new_name.set(Some(String::new()))
+                        }>{"+"}</a>
                     }
                     if let Some(name) = &*new_name {
                         <div>
                             <input type="text" value={name.clone()} onchange={
+                                let new_name = new_name.clone();
                                 move |ev: Event| {ev.target().and_then(
                                     |trg| trg.dyn_into::<HtmlInputElement>().ok()
                                 ).map(
-                                    |input| new_name2.set(Some(input.value()))
+                                    |input| {
+                                        let val = input.value();
+                                        if let Some(err) = crate::validation::project_area::validate(&val) {
+                                            log::info!("{:?}",err)
+                                        } else {
+                                            new_name.set(Some(val))
+                                        }
+                                        
+                                    }
                                 );}
                             }/>
-                            <button onclick={&new_cb}>{"+"}</button>
-                            <button onclick={move |_| new_name.set(None)}>{"-"}</button>
+                            <button class="btn" onclick={&new_cb}>{"+"}</button>
+                            <button class="btn" onclick={move |_| new_name.set(None)}>{"-"}</button>
                         </div>
                     }
                 </li>
