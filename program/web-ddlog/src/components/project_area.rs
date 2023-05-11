@@ -6,7 +6,7 @@ use web_sys::HtmlInputElement;
 use yew::{prelude::*};
 
 
-use crate::{Store, lang::lexer::lex, components::editor::Editor};
+use crate::{Store, lang::lexer::lex, components::editor::Editor, validation};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -27,11 +27,11 @@ pub fn project_area(props: &Props) -> Html {
         }
     });
 
-    let new_name = use_state(|| -> Option<String>{ None });
+    let new_name = use_state(|| -> Option<Result<String,(String,validation::project_area::Error)>>{ None });
     
     let new_name4 = new_name.clone();
     let new_cb = dispatch.reduce_mut_callback(move |state| {
-        if let Some(name) = &*new_name4 {
+        if let Some(Ok(name)) = &*new_name4 {
             state.add_empty_module(&name);
             new_name4.set(None)
         }
@@ -46,30 +46,40 @@ pub fn project_area(props: &Props) -> Html {
                     if new_name.is_none() {
                         <a class="nav-link active" onclick={
                             let new_name = new_name.clone();
-                            move |_| new_name.set(Some(String::new()))
+                            move |_| new_name.set(Some(Ok(String::new())))
                         }>{"+"}</a>
                     }
                     if let Some(name) = &*new_name {
-                        <div>
-                            <input type="text" value={name.clone()} onchange={
-                                let new_name = new_name.clone();
-                                move |ev: Event| {ev.target().and_then(
-                                    |trg| trg.dyn_into::<HtmlInputElement>().ok()
-                                ).map(
-                                    |input| {
-                                        let val = input.value();
-                                        if let Some(err) = crate::validation::project_area::validate(&val) {
-                                            log::info!("{:?}",err)
-                                        } else {
-                                            new_name.set(Some(val))
-                                        }
-                                        
+                        <p>
+                            <input type="text" 
+                                value={
+                                    match name {
+                                        Ok(s) => s.clone(),
+                                        Err((s,_)) => s.clone()
                                     }
-                                );}
-                            }/>
+                                } 
+                                oninput={
+                                    let new_name = new_name.clone();
+                                    move |ev: InputEvent| {ev.target().and_then(
+                                        |trg| trg.dyn_into::<HtmlInputElement>().ok()
+                                    ).map(
+                                        |input| {
+                                            let val = input.value();
+                                            if let Some(err) = validation::project_area::validate(&val) {
+                                                new_name.set(Some(Err((val,err))))
+                                            } else {
+                                                new_name.set(Some(Ok(val)))
+                                            }
+                                        }
+                                    );}
+                                }
+                            />
+                            if let Err((_,err)) = name {
+                                <span>{format!("{:?}",err)}</span>
+                            }
                             <button class="btn" onclick={&new_cb}>{"+"}</button>
                             <button class="btn" onclick={move |_| new_name.set(None)}>{"-"}</button>
-                        </div>
+                        </p>
                     }
                 </li>
             </ul>
