@@ -13,7 +13,16 @@ pub struct Props {
 pub fn header(props: &Props) -> Html {
     html! {
         <div class={"fixed-top"}>
-            <p class={css!("color: red;")}>{"Web DDlog interpreter"} </p>
+            <div class={css!("background-color: gray;")}>
+                <p class={css!("color: lightgreen;")}>
+                    <span class={css!("
+                        font-size: 1.3rem;
+                        padding-left: 2rem;
+                    ")}>
+                        {"Web DDlog interpreter"} 
+                    </span>
+                </p>
+            </div>
         </div>
     } 
 }

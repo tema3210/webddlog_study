@@ -15,8 +15,17 @@ pub fn footer(props: &Props) -> Html {
     
     html! {
         <footer class={"fixed-bottom"}>
-            <div class={"row"}>
-                <p class={css!("color: red;")}>{"footer "} </p>
+            <div>
+                <p class={css!("color: black;")}>
+                    <span class={css!("
+                        font-size: 1.3rem;
+                        padding-left: 2rem;
+                    ")}>
+                        {"
+                            No rights reserved
+                        "} 
+                    </span>
+                </p>
             </div>
         </footer>
         
