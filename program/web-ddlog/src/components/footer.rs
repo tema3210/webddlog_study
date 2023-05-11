@@ -14,7 +14,7 @@ pub fn footer(props: &Props) -> Html {
     let (state, _) = use_store::<State>();
     
     html! {
-        <footer>
+        <footer class={"fixed-bottom"}>
             <div class={"row"}>
                 <p class={css!("color: red;")}>{"footer "} </p>
             </div>

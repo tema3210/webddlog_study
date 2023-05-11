@@ -12,8 +12,8 @@ pub struct Props {
 #[styled_component(Header)]
 pub fn header(props: &Props) -> Html {
     html! {
-        <div class={"row"}>
+        <div class={"fixed-top"}>
             <p class={css!("color: red;")}>{"Web DDlog interpreter"} </p>
         </div>
-    }
+    } 
 }
