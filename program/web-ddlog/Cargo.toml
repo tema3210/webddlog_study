@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wasm-bindgen = "0.2.78"
+wasm-bindgen = "0.2.85"
 web-sys = {version = "0.3", features=["MouseEvent"]}
 log = "0.4.6"
 wasm-logger = "0.2.0"

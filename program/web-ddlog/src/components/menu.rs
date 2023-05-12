@@ -15,7 +15,7 @@ pub fn menu(props: &Props) -> Html {
     
     html! {
         <div class={"row"}>
-            <p class={css!("color: red;")}>{"menu "} </p>
+            <p class={css!("color: red;")}>{" menu "} </p>
         </div>
     }
 }
