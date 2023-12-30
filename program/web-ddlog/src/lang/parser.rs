@@ -1,4 +1,4 @@
-use super::lexer::Token;
+use shared::lexer_types::Token;
 
 pub enum TypeSpec {
     //Primitives
@@ -34,7 +34,7 @@ pub enum AstNode {
     Many(Vec<AstNode>),
     TypeDef(TypeDef),
     Expression(Expression),
-    Function{
+    Function {
         name: String,
         type_: TypeSpec
     }

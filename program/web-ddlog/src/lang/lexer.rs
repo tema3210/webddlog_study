@@ -2,88 +2,7 @@ use std::future::Future;
 
 use arcstr::ArcStr;
 use genawaiter::{rc,yield_};
-
-#[derive(Debug,Clone)]
-pub enum BraceKind {
-    /// {}
-    Brace,
-    // []
-    Braket,
-    // ()
-    Parethesis,
-    // <>
-    AngleBrace
-}
-#[derive(Debug,Clone)]
-pub enum OperatorSign {
-    And,
-    Plus,
-    Minus,
-    /// `|`
-    Pipe,
-    Mul,
-    Div
-}
-
-/// A special character encountered in text
-#[derive(Debug,Clone)]
-pub enum Special {
-    /// `=`
-    EqSign,
-    /// `:`
-    Colon,
-    /// `;`
-    SemiColon
-}
-#[derive(Debug,Clone)]
-pub enum Literal {
-    String(ArcStr),
-    Integer(i64),
-    Float(f64),
-    Boolean(bool),
-}
-
-/// A fragment of text, formated correctly
-#[derive(Debug,Clone)]
-pub enum Token {
-    UcIdent(ArcStr),
-    LcIdent(ArcStr),
-    Special(Special),
-    Literal(Literal),
-    OperatorSign(OperatorSign),
-    BraceRight(BraceKind),
-    BraceLeft(BraceKind),
-}
-
-impl Token {
-    // yet to fill
-    fn from_single_char(ch: char) -> Option<Self> {
-        Some(match ch {
-            '{' => Token::BraceLeft(BraceKind::Brace),
-            '[' => Token::BraceLeft(BraceKind::Braket),
-            '(' => Token::BraceLeft(BraceKind::Parethesis),
-            '<' => Token::BraceLeft(BraceKind::AngleBrace),
-
-            '}' => Token::BraceRight(BraceKind::Brace),
-            ']' => Token::BraceRight(BraceKind::Braket),
-            ')' => Token::BraceRight(BraceKind::Parethesis),
-            '>' => Token::BraceRight(BraceKind::AngleBrace),
-            
-            '=' => Token::Special(Special::EqSign),
-            ':' => Token::Special(Special::Colon),
-            ';' => Token::Special(Special::SemiColon),
-
-            '&' => Token::OperatorSign(OperatorSign::And),
-            '+' => Token::OperatorSign(OperatorSign::Plus),
-            '-' => Token::OperatorSign(OperatorSign::Minus),
-            '|' => Token::OperatorSign(OperatorSign::Pipe),
-            '*' => Token::OperatorSign(OperatorSign::Mul),
-            '/' => Token::OperatorSign(OperatorSign::Div),
-
-            _ => return None
-        })
-    }
-}
+use shared::lexer_types::*;
 
 
 fn parse_lit(window: &[char]) -> (Option<Literal>,usize) {
@@ -158,70 +77,68 @@ fn parse_word(window: &[char]) -> (ArcStr,usize) {
     (s.into(),len)
 }
 
-impl Token {
-    pub fn from_input(input: &str) -> rc::Gen<Token,(), impl Future<Output = ()> + '_> {
-        
-        let lit_predicate =|ch: char| {
-            match ch {
-                '0'..='9' => true,
-                '\"' => true,
-                't' | 'f' => true,
-                _ => false
-            }
-        };
+fn from_input(input: &str) -> rc::Gen<Token,(), impl Future<Output = ()> + '_> {
+    
+    let lit_predicate =|ch: char| {
+        match ch {
+            '0'..='9' => true,
+            '\"' => true,
+            't' | 'f' => true,
+            _ => false
+        }
+    };
 
-        rc::gen!({
-            let mut chars: Vec<char> = input.chars().collect();
-            let mut offset = 0;
+    rc::gen!({
+        let mut chars: Vec<char> = input.chars().collect();
+        let mut offset = 0;
 
-            loop {
-                let window = &chars[offset..];
-                match window {
-                    ['-',dig,..] if ('0'..='9').contains(dig) => {
-                        if let (Some(lit),moved) = parse_lit(&window[1..]) {
-                            offset += moved + 1;
-                            match lit {
-                                Literal::Integer(i) => yield_!(Token::Literal(Literal::Integer(-i))),
-                                Literal::Float(f) => yield_!(Token::Literal(Literal::Float(-f))),
-                                _ => panic!("oh no"),
-                            }
+        loop {
+            let window = &chars[offset..];
+            match window {
+                ['-',dig,..] if ('0'..='9').contains(dig) => {
+                    if let (Some(lit),moved) = parse_lit(&window[1..]) {
+                        offset += moved + 1;
+                        match lit {
+                            Literal::Integer(i) => yield_!(Token::Literal(Literal::Integer(-i))),
+                            Literal::Float(f) => yield_!(Token::Literal(Literal::Float(-f))),
+                            _ => panic!("oh no"),
                         }
                     }
-                    [w,..] if w.is_ascii_lowercase() && w.is_alphabetic()=> {
-                        let (s,moved) = parse_word(window);
-                        offset += moved;
-                        yield_!(Token::LcIdent(ArcStr::from(s)))
-                    },
-                    [w,..] if w.is_ascii_uppercase() && w.is_alphabetic() => {
-                        let (s,moved) = parse_word(window);
-                        offset += moved;
-                        yield_!(Token::UcIdent(ArcStr::from(s)))
-                    },
-                    [w,..] if lit_predicate(*w) => {
-                        if let (Some(lit),moved) = parse_lit(window) {
-                            offset += moved;
-                            yield_!(Token::Literal(lit))
-                        }
-                    },
-                    [ch,..] if Self::from_single_char(*ch).is_some() => {
-                        let tok = Self::from_single_char(*ch).unwrap();
-                        offset += 1;
-                        yield_!(tok);
-                    },
-                    [' ',..] => offset += 1,
-                    [] => break,
-                    _ => {
-                        log::error!("omfg");
-                        break
-                    },
                 }
+                [w,..] if w.is_ascii_lowercase() && w.is_alphabetic()=> {
+                    let (s,moved) = parse_word(window);
+                    offset += moved;
+                    yield_!(Token::LcIdent(ArcStr::from(s)))
+                },
+                [w,..] if w.is_ascii_uppercase() && w.is_alphabetic() => {
+                    let (s,moved) = parse_word(window);
+                    offset += moved;
+                    yield_!(Token::UcIdent(ArcStr::from(s)))
+                },
+                [w,..] if lit_predicate(*w) => {
+                    if let (Some(lit),moved) = parse_lit(window) {
+                        offset += moved;
+                        yield_!(Token::Literal(lit))
+                    }
+                },
+                [ch,..] if Token::from_single_char(*ch).is_some() => {
+                    let tok = Token::from_single_char(*ch).unwrap();
+                    offset += 1;
+                    yield_!(tok);
+                },
+                [' ',..] => offset += 1,
+                [] => break,
+                _ => {
+                    log::error!("omfg");
+                    break
+                },
             }
-        })
-    }
+        }
+    })
 }
 
 
 pub fn lex(input: &str) -> impl Iterator<Item = Token> + '_ {
     log::info!("lexing the {}", input);
-    Token::from_input(input).into_iter()
+    from_input(input).into_iter()
 }
